@@ -31,14 +31,14 @@ if not os.path.exists("./" + config.RESULTS_DIR):
     os.makedirs("./" + config.RESULTS_DIR)
     
 # from config.py start_date is a string
-config.START_DATE
+config.START_DATE = '2020-01-01'
 
 # from config.py end_date is a string
-config.END_DATE
+config.END_DATE = '2021-11-01'
 
 print(config.DOW_30_TICKER)
-df = YahooDownloader(start_date = '2009-01-01',
-                     end_date = '2021-01-01',
+df = YahooDownloader(start_date = '2020-01-01',
+                     end_date = '2021-11-01',
                      ticker_list = config.DOW_30_TICKER).fetch_data()
 
 #%%
@@ -55,8 +55,8 @@ processed = fe.preprocess_data(df)
 
 processed.sort_values(['date','tic'],ignore_index=True).head(10)
 #%%
-train = data_split(processed, '2009-01-01','2020-01-01')
-trade = data_split(processed, '2020-01-01','2021-01-01')
+train = data_split(processed, '2020-01-01','2021-09-01')
+trade = data_split(processed, '2021-09-01','2021-11-01')
 print(len(train))
 print(len(trade))
 
@@ -89,8 +89,8 @@ n_cores = multiprocessing.cpu_count() - 2
 print(f"using {n_cores} cores")
 
 
-env_train, _ = e_train_gym.get_multiproc_env(n = n_cores)
-# env_train, _ = e_train_gym.get_sb_env()
+# env_train, _ = e_train_gym.get_multiproc_env(n = n_cores)
+env_train, _ = e_train_gym.get_sb_env()
 
 #%%
 # agent = DRLAgent(env = env_train)
@@ -124,7 +124,7 @@ model.learn(total_timesteps = 400000,
 
 # print(e_train_gym.actions_memory[:2])
 model.save("quicksave_ppo_dow.model")
-data_turbulence = processed[(processed.date<'2020-01-01') & (processed.date>='2009-01-01')]
+data_turbulence = processed[(processed.date<'2021-09-01') & (processed.date>='2020-01-01')]
 insample_turbulence = data_turbulence.drop_duplicates(subset=['date'])
 insample_turbulence.turbulence.describe()
 
@@ -156,7 +156,7 @@ def DRL_prediction(model, environment):
             break
     return account_memory[0], actions_memory[0]
 
-trade = data_split(processed, '2020-01-01','2021-01-01')
+trade = data_split(processed, '2021-09-01','2021-11-01')
 e_trade_gym = StockTradingEnvV2(df = trade,hmax = 10, 
                               daily_information_cols = information_cols,
                               print_verbosity = 500)
